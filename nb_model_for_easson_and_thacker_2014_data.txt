@@ -40,7 +40,7 @@ model {
   ## Overdispersion parameter
      for(i in 1:n.otus){phi[i] ~ dt(0, pow(2.5,-2),1 )I(0,)}
 
-  ## Hierarchical structure on the row effects
+  ## Hierarchical structure on the rows
   
   for(i in 1:n.samples){alpha[i] ~ dnorm(host.mean[hostID[i]],tau.sample)}
   
