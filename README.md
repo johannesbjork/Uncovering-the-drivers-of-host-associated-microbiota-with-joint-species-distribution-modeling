@@ -2,4 +2,4 @@ Code for the project: Uncovering the drivers of host-associated microbiota with 
 
 https://www.biorxiv.org/content/early/2017/05/15/137943
 
-Data for the project:
+Data for the project: https://osf.io/t9nxh/
