@@ -11,6 +11,8 @@ model {
   
   ## Process model
 
+  ## Prior & corner constraints on the latent factors
+
   ## LV.i (Sample level)
   
      for( i in 1:n.samples ) { for( k in 1:n.latent ) {  LV.i[i,k] ~ dnorm(0,1) } }
