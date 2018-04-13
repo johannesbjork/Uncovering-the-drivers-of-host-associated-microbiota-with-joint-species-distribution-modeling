@@ -17,10 +17,12 @@ model {
   for( i in 1:n.samples ) { for ( j in 1:n.otus ) {
   L[i,j] <- beta[j] + beta_stomachContents[j,full.stomachContents[i]] + beta_elevation[j,full.elevation[i]] + beta_diet[j,Diet[i]] + beta_location[j,Location[i]] + beta_sex[j,full.sex[i]] } }
 
-  ## Priors & corner constraints on the latent factors
+  ## Prior & corner constraints on the latent factors
   
   for( i in 1:n.samples ) { for( k in 1:n.latent ) {  LV[i,k] ~ dnorm(0,1) } } #changed from dnorm(0,1)
+  
   ## Loading - constraints on the upper diagonal as we are indexing Loading[j,k] and not Loading[k,j]
+  
   for( j in 1:(n.latent-1) ) { for ( k in (j+1):n.latent ) { Loading[j,k] <- 0 } } # Constraints to 0 on upper diagonal
   for( j in 1:n.latent ) { Loading[j,j] ~ dnorm(0,1)I(0,) } # Sign constraints on diagonal elements
   for( j in 2:n.latent ) { for( k in 1:(j-1) ) { Loading[j,k] ~ dnorm(0,1) } } # Free lower diagonals
@@ -48,12 +50,17 @@ model {
   sigma.host ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
   sigma2.host <- pow(sigma.host,2) #variance
 
-  ## Phylo
+  ## Phylogenetic effect
+  
   scale.phylo ~ dexp(0.1)
+
+  ## Phylogenetic variance-covariance prior
 
   host_phylo.eff[1:n.hosts] ~ dmnorm(zeroes[1:n.hosts], phylo.prec[,])
   phylo.prec[1:n.hosts,1:n.hosts] <- inverse(A[,])
   for( i in 1:n.hosts ) { zeroes[i] <- 0 }
+
+  ## Variance partitioning of row effects
 
   var.host_phylo <- scale.phylo^2
   var.host <- sigma2.host
@@ -61,7 +68,8 @@ model {
 
   tot.var.alpha <- sigma2.sample + sigma2.host + scale.phylo^2
 
-  ## Sum-to-zero constraint on the X coefficients
+  ## Sum-to-zero constraint on the covariate coefficients
+  
   for( j in 1:n.otus ) {
     beta[j] ~ dt(0,pow(2.5,-2),1)
 
