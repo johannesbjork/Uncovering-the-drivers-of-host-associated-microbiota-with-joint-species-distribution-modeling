@@ -1,0 +1,91 @@
+model {
+  
+  ## Observation model
+  
+  ## Likelihood (NB response)
+  
+     for( i in 1:n.samples ) { for( j in 1:n.otus ) {
+       y[i,j] ~ dnegbin(1/phi[j]/(exp(eta[i,j])+1/phi[j]),1/phi[j])
+       eta[i,j] <- alpha[i] + beta[j] + inprod(LV.i[i,], Loading.i[j,]) + inprod(LV.H[i,], Loading.H[j,]) 
+     } }
+  
+  ## Process model
+
+  ## LV.i (Sample level)
+  
+     for( i in 1:n.samples ) { for( k in 1:n.latent ) {  LV.i[i,k] ~ dnorm(0,1) } }
+     
+  ## Loading.i - constraints on the upper diagonal as we are indexing Loading.i[j,k] and not Loading.i[k,j]
+  
+     for( j in 1:(n.latent-1) ) { for ( k in (j+1):n.latent ) { Loading.i[j,k] <- 0 } } # Constraints to 0 on upper diagonal
+     for( j in 1:n.latent ) { Loading.i[j,j] ~ dnorm(0,1)I(0,) } # Sign constraints on diagonal elements
+     for( j in 2:n.latent ) { for( k in 1:(j-1) ) { Loading.i[j,k] ~ dnorm(0,1) } } # Free lower diagonals
+     for( j in (n.latent+1):n.otus) { for( k in 1:n.latent ) { Loading.i[j,k] ~ dnorm(0,1) } }
+
+  ## LV.H (Host level)
+  
+     for( i in 1:n.hosts ) { for( k in 1:n.latent ) { LV.H[i,k] ~ dnorm(0,1) } }
+     
+  ## Loading.H - constraints on the upper diagonal as we are indexing Loading.H[j,k] and not Loading.H[k,j]
+  
+     for( j in 1:(n.latent-1) ) { for ( k in (j+1):n.latent ) { Loading.H[j,k] <- 0 } } # Constraints to 0 on upper diagonal
+     for( j in 1:n.latent ) { Loading.H[j,j] ~ dnorm(0,1)I(0,) } # Sign constraints on diagonal elements
+     for( j in 2:n.latent ) { for( k in 1:(j-1) ) { Loading.H[j,k] ~ dnorm(0,1) } } # Free lower diagonals
+     for( j in (n.latent+1):n.otus) { for( k in 1:n.latent ) { Loading.H[j,k] ~ dnorm(0,1) } }
+
+  ## Priors on the rest of the params
+  
+  ## Overdispersion parameter
+     for(i in 1:n.otus){phi[i] ~ dt(0, pow(2.5,-2),1 )I(0,)}
+
+  ## Hierarchical structure on the row effects
+  
+  for(i in 1:n.samples){alpha[i] ~ dnorm(host.mean[hostID[i]],tau.sample)}
+  
+  for( i in 1:n.hosts ) { 
+    host.mean[i] <- host_ecotype.eff[i] + host_site.eff[i] + host_phylo.eff[i]*scale.phylo
+    host_ecotype.eff[i] ~ dnorm(ecotype.eff[ecotypeID[i]],tau.host_ecotype)
+    host_site.eff[i] ~ dnorm(site.eff[siteID[i]],tau.host_site)
+  }
+  
+  tau.sample <- pow(sigma.sample,-2) #precision
+  sigma.sample ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
+  sigma2.sample <- pow(sigma.sample,2) #variance
+
+  for( i in 1:n.sites) {
+    site.eff[i] ~ dt(0,pow(2.5,-2),1)
+  }
+  tau.host_site <- pow(sigma.host_site,-2) #precision
+  sigma.host_site ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
+  sigma2.host_site <- pow(sigma.host_site,2) #variance
+
+  for( i in 1:n.ecotypes) {
+    ecotype.eff[i] ~ dt(0,pow(2.5,-2),1)
+  }
+  tau.host_ecotype <- pow(sigma.host_ecotype,-2) #precision
+  sigma.host_ecotype ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
+  sigma2.host_ecotype <- pow(sigma.host_ecotype,2) #variance
+     
+  ## Column effects
+  for(i in 1:n.otus){beta[i] ~ dt(0,pow(2.5,-2),1)}
+
+  ## Phylogenetic effect
+  
+  scale.phylo ~ dexp(0.1)
+
+  ## Phylogenetic variance-covariance prior
+  
+  host_phylo.eff[1:n.hosts] ~ dmnorm( zeroes[1:n.hosts], phylo.prec[,] )
+  phylo.prec[1:n.hosts,1:n.hosts] <- inverse(phyloR[,])
+  for( i in 1:n.hosts ) { zeroes[i] <- 0 }
+
+  ## Variance partitioning
+
+  var.host_phylo <- scale.phylo^2
+  var.host_site <- sigma2.host_site
+  var.host_ecotype <- sigma2.host_ecotype
+  var.sample <- sigma2.sample
+
+  tot.var <- sigma2.sample + sigma2.host_ecotype + sigma2.host_site + scale.phylo^2
+
+}
