@@ -1,0 +1,115 @@
+model {
+  
+  ## Observation model
+  
+  ## Likelihood (Probit response)
+  
+  for(i in 1:n.samples){for(j in 1:n.otus){
+    eta[i,j] <- alpha[i] + L[i,j] + inprod(LV[i,],Loading[j,])
+    Z[i,j] ~ dnorm( eta[i,j], 1 )
+    y[i,j] ~ dbern( step(Z[i,j]) )
+  } }
+
+  ## Process model
+
+  #Linear predictor w/ covariates
+  
+  for( i in 1:n.samples ) { for ( j in 1:n.otus ) {
+  L[i,j] <- beta[j] + beta_stomachContents[j,full.stomachContents[i]] + beta_elevation[j,full.elevation[i]] + beta_diet[j,Diet[i]] + beta_location[j,Location[i]] + beta_sex[j,full.sex[i]] } }
+
+  ## Priors & corner constraints on the latent factors
+  
+  for( i in 1:n.samples ) { for( k in 1:n.latent ) {  LV[i,k] ~ dnorm(0,1) } } #changed from dnorm(0,1)
+  ## Loading - constraints on the upper diagonal as we are indexing Loading[j,k] and not Loading[k,j]
+  for( j in 1:(n.latent-1) ) { for ( k in (j+1):n.latent ) { Loading[j,k] <- 0 } } # Constraints to 0 on upper diagonal
+  for( j in 1:n.latent ) { Loading[j,j] ~ dnorm(0,1)I(0,) } # Sign constraints on diagonal elements
+  for( j in 2:n.latent ) { for( k in 1:(j-1) ) { Loading[j,k] ~ dnorm(0,1) } } # Free lower diagonals
+  for( j in (n.latent+1):n.otus) { for( k in 1:n.latent) { Loading[j,k] ~ dnorm(0,1) } }
+
+  ## Priors on the rest of the params
+
+  ## Overdispersion parameter
+  for( i in 1:n.otus ) { phi[i] ~ dt(0, pow(2.5,-2),1)I(0,) }
+
+  ## Nested structure
+  for( i in 1:n.samples ) { alpha[i] ~ dnorm(host.mean[hostsID[i]],tau.sample) }
+  
+  for( i in 1:n.hosts ) { 
+    host.mean[i] <- host.eff[i] + host_phylo.eff[i]*scale.phylo
+    host.eff[i] ~ dnorm(mu.host[i],tau.host)
+    mu.host[i] ~ dt(0, pow(2.5,-2),1 )
+  }
+
+  tau.sample <- pow(sigma.sample,-2) #precision
+  sigma.sample ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
+  sigma2.sample <- pow(sigma.sample,2) #variance
+
+  tau.host <- pow(sigma.host,-2) #precision
+  sigma.host ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
+  sigma2.host <- pow(sigma.host,2) #variance
+
+  ## Phylo
+  scale.phylo ~ dexp(0.1)
+
+  host_phylo.eff[1:n.hosts] ~ dmnorm(zeroes[1:n.hosts], phylo.prec[,])
+  phylo.prec[1:n.hosts,1:n.hosts] <- inverse(A[,])
+  for( i in 1:n.hosts ) { zeroes[i] <- 0 }
+
+  var.host_phylo <- scale.phylo^2
+  var.host <- sigma2.host
+  var.sample <- sigma2.sample
+
+  tot.var.alpha <- sigma2.sample + sigma2.host + scale.phylo^2
+
+  ## Sum-to-zero constraint on the X coefficients
+  for( j in 1:n.otus ) {
+    beta[j] ~ dt(0,pow(2.5,-2),1)
+
+    for(k in 2:n.stomachContents) { beta_stomachContents[j,k] ~ dt(0,pow(2.5,-2),1) }
+    beta_stomachContents[j,1] <- -sum(beta_stomachContents[j,2:n.stomachContents])
+
+    for(k in 2:n.elevation) { beta_elevation[j,k] ~ dt(0,pow(2.5,-2),1) }
+    beta_elevation[j,1] <- -sum(beta_elevation[j,2:n.elevation])
+
+    for(k in 2:n.diet) { beta_diet[j,k] ~ dt(0,pow(2.5,-2),1) }
+    beta_diet[j,1] <- -sum(beta_diet[j,2:n.diet])
+
+    for(k in 2:n.location) { beta_location[j,k] ~ dt(0,pow(2.5,-2),1) }
+    beta_location[j,1] <- -sum(beta_location[j,2:n.location])
+
+    beta_sex[j,1] ~ dt(0, pow(2.5,-2), 1)
+    beta_sex[j,2] <- -beta_sex[j,1]
+  }
+
+  ## Rebuilt full vector for stomachContents, Sex and Elevation as they contain NAs
+  
+  ## stomachContents
+  for(i in 1:length(avail.vals.stomachContents)) {
+    full.stomachContents[avail.vals.stomachContents[i]] <- stomachContents.avail[i]
+   }
+
+  for(i in 1:length(miss.vals.stomachContents)) {
+    stomachContents.miss[i] ~ dbern(0.5)
+    full.stomachContents[miss.vals.stomachContents[i]] <- stomachContents.miss[i] + 1
+  }
+
+  ## Sex
+  for(i in 1:length(avail.vals.sex)) {
+    full.sex[avail.vals.sex[i]] <- sex.avail[i]
+  }
+
+  for(i in 1:length(miss.vals.sex)) {
+    sex.miss[i] ~ dbern(0.5)
+    full.sex[miss.vals.sex[i]] <- sex.miss[i] + 1
+  }
+
+  ## Elevation
+  for(i in 1:length(avail.vals.elevation)) {
+    full.elevation[avail.vals.elevation[i]] <- elevation.avail[i]
+  }
+
+  #There's only 1 NA for elevation, hence no loop needed
+  elevation.miss ~ dbern(0.5)
+  full.elevation[miss.vals.elevation] <- elevation.miss + 1
+
+}
