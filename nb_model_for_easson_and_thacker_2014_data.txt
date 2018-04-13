@@ -79,7 +79,7 @@ model {
   phylo.prec[1:n.hosts,1:n.hosts] <- inverse(phyloR[,])
   for( i in 1:n.hosts ) { zeroes[i] <- 0 }
 
-  ## Variance partitioning
+  ## Variance partitioning of row effects
 
   var.host_phylo <- scale.phylo^2
   var.host_site <- sigma2.host_site
