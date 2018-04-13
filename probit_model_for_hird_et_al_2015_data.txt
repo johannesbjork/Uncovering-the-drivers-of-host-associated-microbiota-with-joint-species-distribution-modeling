@@ -31,9 +31,11 @@ model {
   ## Priors on the rest of the params
 
   ## Overdispersion parameter
+  
   for( i in 1:n.otus ) { phi[i] ~ dt(0, pow(2.5,-2),1)I(0,) }
 
-  ## Nested structure
+  ## Hierarchical structure on the rows
+
   for( i in 1:n.samples ) { alpha[i] ~ dnorm(host.mean[hostsID[i]],tau.sample) }
   
   for( i in 1:n.hosts ) { 
