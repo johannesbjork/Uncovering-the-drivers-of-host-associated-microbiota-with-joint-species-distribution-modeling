@@ -36,7 +36,7 @@ model {
 
   ## Hierarchical structure on the rows
 
-  for( i in 1:n.samples ) { alpha[i] ~ dnorm(host.mean[hostsID[i]],tau.sample) }
+  for( i in 1:n.samples ) { alpha[i] ~ dnorm(host.mean[hostID[i]],tau.sample) }
   
   for( i in 1:n.hosts ) { 
     host.mean[i] <- host.eff[i] + host_phylo.eff[i]*scale.phylo
