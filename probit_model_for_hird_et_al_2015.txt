@@ -64,9 +64,9 @@ model {
 
   ## Variance partitioning of row effects
 
-  var.host_phylo <- scale.phylo^2
-  var.host <- sigma2.host
-  var.sample <- sigma2.sample
+  #var.host_phylo <- scale.phylo^2
+  #var.host <- sigma2.host
+  #var.sample <- sigma2.sample
 
   tot.var.alpha <- sigma2.sample + sigma2.host + scale.phylo^2
 
