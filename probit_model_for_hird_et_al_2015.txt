@@ -15,7 +15,7 @@ model {
   #Linear predictor w/ covariates
   
   for( i in 1:n.samples ) { for ( j in 1:n.otus ) {
-  L[i,j] <- beta[j] + beta_stomachContents[j,full.stomachContents[i]] + beta_elevation[j,full.elevation[i]] + beta_diet[j,Diet[i]] + beta_location[j,Location[i]] + beta_sex[j,full.sex[i]] } }
+  L[i,j] <- gamma[j] + beta_stomachContents[j,full.stomachContents[i]] + beta_elevation[j,full.elevation[i]] + beta_diet[j,Diet[i]] + beta_location[j,Location[i]] + beta_sex[j,full.sex[i]] } }
 
   ## Prior & corner constraints on the latent factors
   
@@ -73,7 +73,7 @@ model {
   ## Sum-to-zero constraint on the covariate coefficients
   
   for( j in 1:n.otus ) {
-    beta[j] ~ dt(0,pow(2.5,-2),1)
+    gamma[j] ~ dt(0,pow(2.5,-2),1)
 
     for(k in 2:n.stomachContents) { beta_stomachContents[j,k] ~ dt(0,pow(2.5,-2),1) }
     beta_stomachContents[j,1] <- -sum(beta_stomachContents[j,2:n.stomachContents])
