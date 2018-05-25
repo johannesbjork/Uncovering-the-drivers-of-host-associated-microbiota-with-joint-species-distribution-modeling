@@ -6,7 +6,7 @@ model {
   
      for( i in 1:n.samples ) { for( j in 1:n.otus ) {
        y[i,j] ~ dnegbin(1/phi[j]/(exp(eta[i,j])+1/phi[j]),1/phi[j])
-       eta[i,j] <- alpha[i] + beta[j] + inprod(LV.i[i,], Loading.i[j,]) + inprod(LV.H[i,], Loading.H[j,]) 
+       eta[i,j] <- alpha[i] + gamma[j] + inprod(LV.i[i,], Loading.i[j,]) + inprod(LV.H[i,], Loading.H[j,]) 
      } }
   
   ## Process model
@@ -69,7 +69,7 @@ model {
   sigma2.host_ecotype <- pow(sigma.host_ecotype,2) #variance
      
   ## Column effects
-  for(i in 1:n.otus){beta[i] ~ dt(0,pow(2.5,-2),1)}
+  for(i in 1:n.otus){gamma[i] ~ dt(0,pow(2.5,-2),1)}
 
   ## Phylogenetic effect
   
