@@ -4,10 +4,10 @@ model {
   
   ## Likelihood (NB response)
   
-     for( i in 1:n.samples ) { for( j in 1:n.otus ) {
+     for( i in 1:n.samples ) { for( j in 1:n.otus ) { for( k in 1:n.latent ) {
        y[i,j] ~ dnegbin(1/phi[j]/(exp(eta[i,j])+1/phi[j]),1/phi[j])
-       eta[i,j] <- alpha[i] + gamma[j] + inprod(LV.i[i,], Loading.i[j,]) + inprod(LV.H[i,], Loading.H[j,]) 
-     } }
+       eta[i,j] <- alpha[i] + gamma[j] + inprod(LV.i[i,q],Loading.i[j,q]) + inprod(LV.H[hostID[i],q],Loading.H[j,q]) 
+    } } }
   
   ## Process model
 
