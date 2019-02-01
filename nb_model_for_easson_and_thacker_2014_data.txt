@@ -4,7 +4,7 @@ model {
   
   ## Likelihood (NB response)
   
-    for(i in 1:n.samples) { for(j in 1:n.otus) { for(k in n.latent) {
+    for( i in 1:n.samples ) { for( j in 1:n.otus ) { for( k in n.latent ) {
     y[i,j] ~ dnegbin(1/phi[j]/(exp(eta[i,j])+1/phi[j]),1/phi[j])
     eta[i,j] <- alpha[i] + gamma[j] + inprod(LV.i[i,k],Loading.i[j,k]) + inprod(LV.H[hostID[i],k],Loading.H[j,k]) } } }
   
