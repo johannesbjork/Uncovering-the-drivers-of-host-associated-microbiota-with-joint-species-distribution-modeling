@@ -5,8 +5,8 @@ model {
   ## Likelihood (NB response)
   
     for( i in 1:n.samples ) { for( j in 1:n.otus ) { for( k in n.latent ) {
-    y[i,j] ~ dnegbin(1/phi[j]/(exp(eta[i,j])+1/phi[j]),1/phi[j])
-    eta[i,j] <- alpha[i] + gamma[j] + inprod(LV.i[i,k],Loading.i[j,k]) + inprod(LV.H[hostID[i],k],Loading.H[j,k]) } } }
+    y[i,j] ~ dnegbin( 1 / phi[j] / ( exp( eta[i,j] ) + 1 / phi[j] ), 1 / phi[j] )
+    eta[i,j] <- alpha[i] + gamma[j] + inprod( LV.i[i,k],Loading.i[j,k] ) + inprod( LV.H[hostID[i],k],Loading.H[j,k] ) } } }
   
   ## Process model
 
@@ -37,7 +37,7 @@ model {
   ## Priors on the rest of the params
   
   ## Overdispersion parameter
-     for(i in 1:n.otus){phi[i] ~ dt(0, pow(2.5,-2),1 )I(0,)}
+     for( i in 1:n.otus ){ phi[i] ~ dt(0, pow(2.5,-2),1)I(0,) }
 
   ## Hierarchical structure on the rows
   
@@ -53,22 +53,18 @@ model {
   sigma.sample ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
   sigma2.sample <- pow(sigma.sample,2) #variance
 
-  for( i in 1:n.sites) {
-    site.eff[i] ~ dt(0,pow(2.5,-2),1)
-  }
+  for( i in 1:n.sites) { site.eff[i] ~ dt(0,pow(2.5,-2),1) }
   tau.host_site <- pow(sigma.host_site,-2) #precision
   sigma.host_site ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
   sigma2.host_site <- pow(sigma.host_site,2) #variance
 
-  for( i in 1:n.ecotypes) {
-    ecotype.eff[i] ~ dt(0,pow(2.5,-2),1)
-  }
+  for( i in 1:n.ecotypes) { ecotype.eff[i] ~ dt(0,pow(2.5,-2),1) }
   tau.host_ecotype <- pow(sigma.host_ecotype,-2) #precision
   sigma.host_ecotype ~ dt(0, pow(1,-2),1 )I(0,) #standard deviation
   sigma2.host_ecotype <- pow(sigma.host_ecotype,2) #variance
      
   ## Column effects
-  for(i in 1:n.otus){gamma[i] ~ dt(0,pow(2.5,-2),1)}
+  for( i in 1:n.otus ){ gamma[i] ~ dt(0,pow(2.5,-2),1) }
 
   ## Phylogenetic effect
   
