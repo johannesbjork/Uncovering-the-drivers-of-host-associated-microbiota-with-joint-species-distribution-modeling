@@ -3,6 +3,13 @@
 # With a hierarchical structure on the rows (alpha)
 # Can I put true variances on the hierarchy and estimate them correctly? 
 
+# This is the code (beta) for the tutorial coded in R and greta. 
+# This is a work in progress. 
+# The goal of the code is to show how to (1) simulate data under the model, 
+# (2) fit the model and (3) analyze model fit. 
+# The current work in progress consists of getting the estimation of a known variance hierarchy 
+# (i.e., sample, host and phylo) right.
+
 library(greta)
 library(geiger)
 #library(extraDist)
